@@ -4,14 +4,17 @@ import { WebhookPayload } from '@actions/github/lib/interfaces';
 import { TCommit } from 'types/common';
 import { fetchCommitsInPullRequest } from './octokit';
 
-async function getCommitEmails(githubEvent: WebhookPayload): Promise<string[] | undefined> {
+async function getCommitEmails(
+  githubEvent: WebhookPayload
+): Promise<(string | undefined)[] | undefined> {
   if (githubEvent.pull_request) {
     const { number } = githubEvent.pull_request;
 
     info(`Checking pull request with id: ${number}`);
     const data = await fetchCommitsInPullRequest(number);
 
-    return data.map((data) => data.commit.author?.email) as string[];
+    // author?.email can be undefined; return it honestly (filterInvalidEmails handles it).
+    return data.map((data) => data.commit.author?.email);
   }
 
   if (githubEvent.commits) {
